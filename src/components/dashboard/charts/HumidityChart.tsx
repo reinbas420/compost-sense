@@ -11,7 +11,7 @@ const HumidityChart = ({ data, timeRange }: HumidityChartProps) => {
     const istTimestamp = (timestamp + 19800) * 1000;
     const date = new Date(istTimestamp);
 
-    if (timeRange === "hour") {
+    if (timeRange === "hour" || timeRange === "custom") {
       return date.toLocaleTimeString("en-IN", {
         hour: "2-digit",
         minute: "2-digit",
@@ -33,8 +33,22 @@ const HumidityChart = ({ data, timeRange }: HumidityChartProps) => {
     }
   };
 
+  const formatTooltipTime = (timestamp: number) => {
+    const istTimestamp = (timestamp + 19800) * 1000;
+    const date = new Date(istTimestamp);
+    return date.toLocaleString("en-IN", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      timeZone: "UTC",
+    });
+  };
+
   const chartData = data.map((log) => ({
     time: formatLabel(log.unix_time),
+    fullTime: formatTooltipTime(log.unix_time),
     humidity: log.dht?.humidity || null,
     soilRes: log.soil?.resistive_percent || null,
     soilCap: log.soil?.capacitive_percent || null,
@@ -52,7 +66,7 @@ const HumidityChart = ({ data, timeRange }: HumidityChartProps) => {
           <span className="text-5xl font-bold text-humidity">{currentHumidity}%</span>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={350}>
+      <ResponsiveContainer width="100%" height={300}>
         <AreaChart data={chartData}>
           <defs>
             <linearGradient id="humidityGradient" x1="0" y1="0" x2="0" y2="1">
@@ -68,15 +82,19 @@ const HumidityChart = ({ data, timeRange }: HumidityChartProps) => {
               <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+          <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="hsl(var(--border))" />
           <XAxis 
             dataKey="time" 
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             tickLine={false}
+            axisLine={{ stroke: 'hsl(var(--border))' }}
+            interval="preserveStartEnd"
+            minTickGap={50}
           />
           <YAxis 
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             tickLine={false}
+            axisLine={{ stroke: 'hsl(var(--border))' }}
             domain={[0, 100]}
           />
           <Tooltip 
@@ -84,7 +102,15 @@ const HumidityChart = ({ data, timeRange }: HumidityChartProps) => {
               backgroundColor: 'hsl(var(--card))', 
               border: '1px solid hsl(var(--border))',
               borderRadius: '8px',
+              color: 'hsl(var(--card-foreground))',
             }}
+            labelFormatter={(label, payload) => {
+              if (payload && payload[0]) {
+                return payload[0].payload.fullTime;
+              }
+              return label;
+            }}
+            formatter={(value: any) => [`${value?.toFixed(1)}%`]}
           />
           <Area
             type="monotone"

@@ -1,12 +1,12 @@
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { SensorLog } from "@/pages/Index";
 
-interface TemperatureChartProps {
+interface CombinedChartProps {
   data: SensorLog[];
   timeRange: string;
 }
 
-const TemperatureChart = ({ data, timeRange }: TemperatureChartProps) => {
+const CombinedChart = ({ data, timeRange }: CombinedChartProps) => {
   const formatLabel = (timestamp: number) => {
     const istTimestamp = (timestamp + 19800) * 1000;
     const date = new Date(istTimestamp);
@@ -49,33 +49,30 @@ const TemperatureChart = ({ data, timeRange }: TemperatureChartProps) => {
   const chartData = data.map((log) => ({
     time: formatLabel(log.unix_time),
     fullTime: formatTooltipTime(log.unix_time),
-    dht: log.dht?.temperature || null,
-    ds18b20: log.ds18b20?.temperature_c || null,
+    temperature: log.dht?.temperature || null,
+    humidity: log.dht?.humidity || null,
+    gas: log.gas?.mq135_ppm || null,
   }));
-
-  // Find current temperature for display
-  const currentTemp = data.length > 0 ? data[data.length - 1]?.dht?.temperature?.toFixed(1) : "--";
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Temperature</span>
-        </div>
-        <div className="flex items-baseline gap-2 mt-2">
-          <span className="text-5xl font-bold text-temp">{currentTemp}°C</span>
-        </div>
+      <div className="mb-4">
+        <span className="text-sm text-muted-foreground">All Sensor Data Combined</span>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={400}>
         <AreaChart data={chartData}>
           <defs>
-            <linearGradient id="dhtGradient" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="tempGradientCombined" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
               <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
             </linearGradient>
-            <linearGradient id="dsGradient" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="humidityGradientCombined" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
               <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+            </linearGradient>
+            <linearGradient id="gasGradientCombined" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="hsl(var(--border))" />
@@ -88,10 +85,19 @@ const TemperatureChart = ({ data, timeRange }: TemperatureChartProps) => {
             minTickGap={50}
           />
           <YAxis 
+            yAxisId="left"
             tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             tickLine={false}
             axisLine={{ stroke: 'hsl(var(--border))' }}
-            domain={['auto', 'auto']}
+            label={{ value: 'Temp (°C) / Humidity (%)', angle: -90, position: 'insideLeft', style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' } }}
+          />
+          <YAxis 
+            yAxisId="right"
+            orientation="right"
+            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+            tickLine={false}
+            axisLine={{ stroke: 'hsl(var(--border))' }}
+            label={{ value: 'Gas (ppm)', angle: 90, position: 'insideRight', style: { fontSize: 11, fill: 'hsl(var(--muted-foreground))' } }}
           />
           <Tooltip 
             contentStyle={{ 
@@ -106,23 +112,43 @@ const TemperatureChart = ({ data, timeRange }: TemperatureChartProps) => {
               }
               return label;
             }}
-            formatter={(value: any) => [`${value?.toFixed(1)}°C`]}
+            formatter={(value: any, name: string) => {
+              if (name === "Temperature") return [`${value?.toFixed(1)}°C`, name];
+              if (name === "Humidity") return [`${value?.toFixed(1)}%`, name];
+              if (name === "Air Quality") return [`${value?.toFixed(1)} ppm`, name];
+              return [value, name];
+            }}
+          />
+          <Legend 
+            wrapperStyle={{ fontSize: 12 }}
+            iconType="line"
           />
           <Area
+            yAxisId="left"
             type="monotone"
-            dataKey="dht"
+            dataKey="temperature"
             stroke="hsl(var(--chart-1))"
-            fill="url(#dhtGradient)"
+            fill="url(#tempGradientCombined)"
             strokeWidth={2}
-            name="DHT22"
+            name="Temperature"
           />
           <Area
+            yAxisId="left"
             type="monotone"
-            dataKey="ds18b20"
+            dataKey="humidity"
             stroke="hsl(var(--chart-2))"
-            fill="url(#dsGradient)"
+            fill="url(#humidityGradientCombined)"
             strokeWidth={2}
-            name="DS18B20"
+            name="Humidity"
+          />
+          <Area
+            yAxisId="right"
+            type="monotone"
+            dataKey="gas"
+            stroke="hsl(var(--chart-4))"
+            fill="url(#gasGradientCombined)"
+            strokeWidth={2}
+            name="Air Quality"
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -130,4 +156,4 @@ const TemperatureChart = ({ data, timeRange }: TemperatureChartProps) => {
   );
 };
 
-export default TemperatureChart;
+export default CombinedChart;
