@@ -11,7 +11,7 @@ const GasChart = ({ data, timeRange }: GasChartProps) => {
     const istTimestamp = (timestamp + 19800) * 1000;
     const date = new Date(istTimestamp);
 
-    if (timeRange === "hour" || timeRange === "custom") {
+    if (timeRange === "hour") {
       return date.toLocaleTimeString("en-IN", {
         hour: "2-digit",
         minute: "2-digit",
@@ -33,22 +33,8 @@ const GasChart = ({ data, timeRange }: GasChartProps) => {
     }
   };
 
-  const formatTooltipTime = (timestamp: number) => {
-    const istTimestamp = (timestamp + 19800) * 1000;
-    const date = new Date(istTimestamp);
-    return date.toLocaleString("en-IN", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      timeZone: "UTC",
-    });
-  };
-
   const chartData = data.map((log) => ({
     time: formatLabel(log.unix_time),
-    fullTime: formatTooltipTime(log.unix_time),
     ppm: log.gas?.mq135_ppm || null,
   }));
 
@@ -65,7 +51,7 @@ const GasChart = ({ data, timeRange }: GasChartProps) => {
           <span className="text-2xl text-muted-foreground">ppm</span>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={350}>
         <AreaChart data={chartData}>
           <defs>
             <linearGradient id="gasGradient" x1="0" y1="0" x2="0" y2="1">
@@ -73,19 +59,15 @@ const GasChart = ({ data, timeRange }: GasChartProps) => {
               <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.3} stroke="hsl(var(--border))" />
+          <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
           <XAxis 
             dataKey="time" 
-            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+            tick={{ fontSize: 12 }}
             tickLine={false}
-            axisLine={{ stroke: 'hsl(var(--border))' }}
-            interval="preserveStartEnd"
-            minTickGap={50}
           />
           <YAxis 
-            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+            tick={{ fontSize: 12 }}
             tickLine={false}
-            axisLine={{ stroke: 'hsl(var(--border))' }}
             domain={['auto', 'auto']}
           />
           <Tooltip 
@@ -93,15 +75,7 @@ const GasChart = ({ data, timeRange }: GasChartProps) => {
               backgroundColor: 'hsl(var(--card))', 
               border: '1px solid hsl(var(--border))',
               borderRadius: '8px',
-              color: 'hsl(var(--card-foreground))',
             }}
-            labelFormatter={(label, payload) => {
-              if (payload && payload[0]) {
-                return payload[0].payload.fullTime;
-              }
-              return label;
-            }}
-            formatter={(value: any) => [`${value?.toFixed(1)} ppm`]}
           />
           <Area
             type="monotone"

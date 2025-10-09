@@ -2,41 +2,23 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SensorLog } from "@/pages/Index";
 import TemperatureChart from "./charts/TemperatureChart";
 import HumidityChart from "./charts/HumidityChart";
 import GasChart from "./charts/GasChart";
-import CombinedChart from "./charts/CombinedChart";
-import { BarChart3, Calendar as CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { BarChart3 } from "lucide-react";
 
 interface DataVisualizationProps {
   sensorLogs: SensorLog[];
 }
 
-type TimeRange = "hour" | "day" | "all" | "custom";
+type TimeRange = "hour" | "day" | "all";
 
 const DataVisualization = ({ sensorLogs }: DataVisualizationProps) => {
   const [timeRange, setTimeRange] = useState<TimeRange>("day");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
   const filterLogsByRange = (logs: SensorLog[], range: TimeRange) => {
     if (range === "all") return logs;
-
-    if (range === "custom" && selectedDate) {
-      const startOfDay = new Date(selectedDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(selectedDate);
-      endOfDay.setHours(23, 59, 59, 999);
-      
-      const startTimestamp = startOfDay.getTime() / 1000;
-      const endTimestamp = endOfDay.getTime() / 1000;
-      
-      return logs.filter((log) => log.unix_time >= startTimestamp && log.unix_time <= endTimestamp);
-    }
 
     const now = Date.now() / 1000;
     let timeThreshold: number;
@@ -52,13 +34,6 @@ const DataVisualization = ({ sensorLogs }: DataVisualizationProps) => {
 
   const filteredLogs = filterLogsByRange(sensorLogs, timeRange);
 
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date);
-    if (date) {
-      setTimeRange("custom");
-    }
-  };
-
   return (
     <Card className="p-6 border-2">
       <div className="flex items-center justify-between mb-6">
@@ -66,7 +41,7 @@ const DataVisualization = ({ sensorLogs }: DataVisualizationProps) => {
           <BarChart3 className="h-6 w-6 text-primary" />
           <h2 className="text-2xl font-bold">Data Visualization</h2>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           <Button
             variant={timeRange === "hour" ? "default" : "outline"}
             size="sm"
@@ -88,41 +63,15 @@ const DataVisualization = ({ sensorLogs }: DataVisualizationProps) => {
           >
             7d
           </Button>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={timeRange === "custom" ? "default" : "outline"}
-                size="sm"
-                className={cn("gap-2", !selectedDate && "text-muted-foreground")}
-              >
-                <CalendarIcon className="h-4 w-4" />
-                {selectedDate ? format(selectedDate, "PPP") : "Pick date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleDateSelect}
-                initialFocus
-                className="pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
         </div>
       </div>
 
-      <Tabs defaultValue="combined" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="combined">Combined</TabsTrigger>
+      <Tabs defaultValue="temperature" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="temperature">Temperature</TabsTrigger>
           <TabsTrigger value="humidity">Humidity</TabsTrigger>
           <TabsTrigger value="gas">Air Quality</TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="combined" className="space-y-4">
-          <CombinedChart data={filteredLogs} timeRange={timeRange} />
-        </TabsContent>
         
         <TabsContent value="temperature" className="space-y-4">
           <TemperatureChart data={filteredLogs} timeRange={timeRange} />

@@ -5,7 +5,6 @@ import { getDatabase, ref, onValue } from "firebase/database";
 import MetricsGrid from "@/components/dashboard/MetricsGrid";
 import DataVisualization from "@/components/dashboard/DataVisualization";
 import ConnectionStatus from "@/components/dashboard/ConnectionStatus";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBUhwjURUmcdMm3Dzzre7w_4xhITNVloHc",
@@ -117,13 +116,10 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground">Real-time sensor monitoring</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <ConnectionStatus 
-                isConnected={isConnected}
-                lastUpdate={sensorData.system?.last_update}
-              />
-              <ThemeToggle />
-            </div>
+            <ConnectionStatus 
+              isConnected={isConnected}
+              lastUpdate={sensorData.system?.last_update}
+            />
           </div>
         </div>
       </header>
