@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 240 10% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -17,41 +17,56 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 221 83% 53%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Sensor card backgrounds */
+    --temp-bg: 0 100% 97%;
+    --temp-accent: 0 84% 60%;
+    
+    --humidity-bg: 210 100% 97%;
+    --humidity-accent: 221 83% 53%;
+    
+    --moisture-bg: 142 76% 97%;
+    --moisture-accent: 142 76% 36%;
+    
+    --gas-bg: 270 60% 97%;
+    --gas-accent: 271 91% 65%;
+
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+
+    --chart-1: 0 84% 60%;
+    --chart-2: 221 83% 53%;
+    --chart-3: 142 76% 36%;
+    --chart-4: 271 91% 65%;
+    --chart-5: 38 92% 50%;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -101,5 +116,40 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .metric-card-temp {
+    @apply bg-[hsl(var(--temp-bg))] border-[hsl(var(--temp-accent))]/20;
+  }
+  
+  .metric-card-humidity {
+    @apply bg-[hsl(var(--humidity-bg))] border-[hsl(var(--humidity-accent))]/20;
+  }
+  
+  .metric-card-moisture {
+    @apply bg-[hsl(var(--moisture-bg))] border-[hsl(var(--moisture-accent))]/20;
+  }
+  
+  .metric-card-gas {
+    @apply bg-[hsl(var(--gas-bg))] border-[hsl(var(--gas-accent))]/20;
+  }
+
+  .text-temp {
+    @apply text-[hsl(var(--temp-accent))];
+  }
+  
+  .text-humidity {
+    @apply text-[hsl(var(--humidity-accent))];
+  }
+  
+  .text-moisture {
+    @apply text-[hsl(var(--moisture-accent))];
+  }
+  
+  .text-gas {
+    @apply text-[hsl(var(--gas-accent))];
   }
 }
