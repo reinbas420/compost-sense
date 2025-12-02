@@ -35,10 +35,22 @@ const GasChart = ({ data, timeRange }: GasChartProps) => {
 
   const chartData = data.map((log) => ({
     time: formatLabel(log.unix_time),
-    ppm: log.gas?.mq135_ppm || null,
+    ppm: (() => {
+      const v = log.gas?.mq135_ppm;
+      if (v === undefined || v === null) return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    })(),
   }));
 
-  const currentPPM = data.length > 0 ? data[data.length - 1]?.gas?.mq135_ppm?.toFixed(1) : "--";
+  const currentPPM = (() => {
+    if (!data.length) return "--";
+    const last = data[data.length - 1];
+    const v = last.gas?.mq135_ppm;
+    if (v === undefined || v === null) return "--";
+    const n = Number(v);
+    return Number.isFinite(n) ? n.toFixed(1) : "--";
+  })();
 
   return (
     <div>

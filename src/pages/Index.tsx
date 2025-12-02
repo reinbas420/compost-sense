@@ -15,25 +15,31 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
 export interface SensorData {
-  dht: { temperature: number; humidity: number } | null;
-  ds18b20: { temperature_c: number } | null;
-  soil: { resistive_percent: number; capacitive_percent: number } | null;
+  dht1: { temperature: number; humidity: number } | null;
+  dht2?: { temperature: number; humidity: number } | null;
+  ds18b20_1?: { temperature: number } | null;
+  ds18b20_2?: { temperature: number } | null;
+  soil: { resistive_raw: number; capacitive_raw: number } | null;
   gas: { mq135_ppm: number } | null;
   system: { last_update: string; total_logs: number } | null;
 }
 
 export interface SensorLog {
   unix_time: number;
-  dht?: { temperature: number; humidity: number };
-  ds18b20?: { temperature_c: number };
-  soil?: { resistive_percent: number; capacitive_percent: number };
+  dht1?: { temperature: number; humidity: number };
+  dht2?: { temperature: number; humidity: number };
+  ds18b20_1?: { temperature_c: number };
+  ds18b20_2?: { temperature_c: number };
+  soil?: { resistive_raw?: number; capacitive_raw?: number };
   gas?: { mq135_ppm: number };
 }
 
 const Index = () => {
   const [sensorData, setSensorData] = useState<SensorData>({
-    dht: null,
-    ds18b20: null,
+    dht1: null,
+    dht2: null,
+    ds18b20_1: null,
+    ds18b20_2: null,
     soil: null,
     gas: null,
     system: null,
@@ -43,16 +49,26 @@ const Index = () => {
 
   useEffect(() => {
     // Listen to real-time data
-    const dhtRef = ref(database, "/dht");
-    const ds18b20Ref = ref(database, "/ds18b20");
-    const soilRef = ref(database, "/soil");
+    const dhtRef = ref(database, "/dht1");
+    const dht2Ref = ref(database, "/dht2");
+    const ds18b20Ref = ref(database, "/ds18b20_1");
+    const ds18b20_2Ref = ref(database, "/ds18b20_2");
+    const soilRef = ref(database, "/soil");//here 
     const gasRef = ref(database, "/gas");
     const systemRef = ref(database, "/system");
 
     onValue(dhtRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        setSensorData((prev) => ({ ...prev, dht: data }));
+        setSensorData((prev) => ({ ...prev, dht1: data }));
+        setIsConnected(true);
+      }
+    });
+
+    onValue(dht2Ref, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setSensorData((prev) => ({ ...prev, dht2: data }));
         setIsConnected(true);
       }
     });
@@ -60,7 +76,14 @@ const Index = () => {
     onValue(ds18b20Ref, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        setSensorData((prev) => ({ ...prev, ds18b20: data }));
+        setSensorData((prev) => ({ ...prev, ds18b20_1: data }));
+      }
+    });
+
+    onValue(ds18b20_2Ref, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setSensorData((prev) => ({ ...prev, ds18b20_2: data }));
       }
     });
 

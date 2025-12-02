@@ -35,12 +35,46 @@ const TemperatureChart = ({ data, timeRange }: TemperatureChartProps) => {
 
   const chartData = data.map((log) => ({
     time: formatLabel(log.unix_time),
-    dht: log.dht?.temperature || null,
-    ds18b20: log.ds18b20?.temperature_c || null,
+    dht:
+      (() => {
+        const v1 = log.dht1?.temperature;
+        const v2 = log.dht2?.temperature;
+        // prefer primary sensor (dht1), fallback to dht2
+        if (v1 !== undefined && v1 !== null && Number.isFinite(Number(v1))) return Number(v1);
+        if (v2 !== undefined && v2 !== null && Number.isFinite(Number(v2))) return Number(v2);
+        return null;
+      })(),
+    ds18b20:
+      (() => {
+        const v1 = log.ds18b20_1?.temperature_c;
+        const v2 = log.ds18b20_2?.temperature_c;
+        // prefer primary sensor (ds18b20_1), fallback to ds18b20_2
+        if (v1 !== undefined && v1 !== null && Number.isFinite(Number(v1))) {
+          const nv = Number(v1);
+          if (nv < -40 || nv > 125) return null;
+          return nv;
+        }
+        if (v2 !== undefined && v2 !== null && Number.isFinite(Number(v2))) {
+          const nv = Number(v2);
+          if (nv < -40 || nv > 125) return null;
+          return nv;
+        }
+        return null;
+      })(),
   }));
 
   // Find current temperature for display
-  const currentTemp = data.length > 0 ? data[data.length - 1]?.dht?.temperature?.toFixed(1) : "--";
+  const currentTemp = (() => {
+    if (data.length === 0) return "--";
+    const last = data[data.length - 1];
+    const v1 = last.dht1?.temperature;
+    const v2 = last.dht2?.temperature;
+    const primary = v1 !== undefined && v1 !== null && Number.isFinite(Number(v1)) ? Number(v1) : null;
+    const secondary = v2 !== undefined && v2 !== null && Number.isFinite(Number(v2)) ? Number(v2) : null;
+    const value = primary != null ? primary : secondary;
+    if (value == null) return "--";
+    return value.toFixed(1);
+  })();
 
   return (
     <div>
